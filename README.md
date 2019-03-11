@@ -1,5 +1,5 @@
 # PackageMachine
-iOS development tool for macos
+iOS development tool for package
 
 # notice
 ========
