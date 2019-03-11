@@ -11,3 +11,6 @@ iOS developer tool for package
 解决：检查工程路径和工程名是否正确
 
 3. debug release 蓝色为选中
+
+4. 直接使用
+使用package.dmg打开app
