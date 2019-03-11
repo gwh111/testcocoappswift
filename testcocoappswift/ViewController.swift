@@ -12,6 +12,7 @@ class ViewController: NSViewController {
     
     @IBOutlet var projectPath: NSTextField!
     @IBOutlet var projectName: NSTextField!
+    @IBOutlet var debugRelease: NSSegmentedControl!
     @IBOutlet var exportOptionsPath: NSTextField!
     @IBOutlet var ipaPath: NSTextField!
     
@@ -26,7 +27,13 @@ class ViewController: NSViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
+        recoverAndSet();
+        // Do any additional setup after loading the view.
+    }
+    
+    func recoverAndSet() {
+        
         let objs:[Any]=[projectPath,projectName,exportOptionsPath,ipaPath]
         let names:[NSString]=["projectPath","projectName","exportOptionsPath","ipaPath"]
         
@@ -40,8 +47,22 @@ class ViewController: NSViewController {
             }
             obj.stringValue=(v as? String)!
         }
+        let ps=UserDefaults.standard.value(forKey: "projectName" as String)
+        if (ps==nil){
+        }else{
+            projectName.stringValue=(ps as? String)!;
+        }
+        let dr=UserDefaults.standard.value(forKey: "debugRelease")
+        if (dr==nil){
+        }else{
+            debugRelease.selectedSegment=dr as! Int;
+        }
         
-        // Do any additional setup after loading the view.
+        debugRelease.action = #selector(segmentControlChanged(segmentControl:))
+    }
+    
+    @objc func segmentControlChanged(segmentControl: NSSegmentedControl) {
+        print(segmentControl.selectedSegment)
     }
 
     override var representedObject: Any? {
@@ -129,6 +150,7 @@ class ViewController: NSViewController {
             return
         }
         
+        
         var str1="abc"
         let str2="abc"
         if str1==str2{
@@ -143,6 +165,7 @@ class ViewController: NSViewController {
             UserDefaults.standard.setValue(obj.stringValue, forKey: names[i] as String)
         }
         UserDefaults.standard.setValue(self.projectName.stringValue, forKey: "projectName")
+        UserDefaults.standard.setValue(self.debugRelease.selectedSegment, forKey: "debugRelease")
         UserDefaults.standard.synchronize()
         
 //        self.showInfoTextView.string="abc";
@@ -161,10 +184,15 @@ class ViewController: NSViewController {
         let returnData = Bundle.main.path(forResource: "package", ofType: "sh")
         let data = NSData.init(contentsOfFile: returnData!)
         var str =  NSString(data:data! as Data, encoding: String.Encoding.utf8.rawValue)! as String
-        str = str.replacingOccurrences(of: "NAME_project", with: nameStr)
-        str = str.replacingOccurrences(of: "PATH_project", with: projectStr)
-        str = str.replacingOccurrences(of: "PATH_plist", with: plistStr)
-        str = str.replacingOccurrences(of: "PATH_ipa", with: ipaStr)
+        if debugRelease.selectedSegment==0 {
+            str = str.replacingOccurrences(of: "DEBUG_RELEASE", with: "debug")
+        }else{
+            str = str.replacingOccurrences(of: "DEBUG_RELEASE", with: "release")
+        }
+        str = str.replacingOccurrences(of: "NAME_PROJECT", with: nameStr)
+        str = str.replacingOccurrences(of: "PATH_PROJECT", with: projectStr)
+        str = str.replacingOccurrences(of: "PATH_PLIST", with: plistStr)
+        str = str.replacingOccurrences(of: "PATH_IPA", with: ipaStr)
         str = str.replacingOccurrences(of: "file://", with: "")
         print("返回的数据：\(str)");
         
@@ -240,8 +268,14 @@ extension ViewController{
                         
                         return
                     }else{
-                        
-                        let nextOutput = outputString
+                        let previousOutput = self.showInfoTextView.string
+                        var nextOutput = previousOutput + "\n" + outputString as String
+                        if nextOutput.count>5000 {
+                            nextOutput=String(nextOutput.suffix(1000));
+                        }
+                        // 滚动到可视位置
+                        let range = NSRange(location:nextOutput.utf8CString.count,length:0)
+                        self.showInfoTextView.scrollRangeToVisible(range)
                         self.showInfoTextView.string = nextOutput
                     }
                 }

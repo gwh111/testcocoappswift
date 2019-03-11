@@ -868,9 +868,21 @@
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </textFieldCell>
                             </textField>
+                            <segmentedControl verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9ki-lO-zWJ">
+                                <rect key="frame" x="296" y="512" width="138" height="24"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <segmentedCell key="cell" borderStyle="border" alignment="left" style="rounded" trackingMode="selectOne" id="gUr-tv-0Fh">
+                                    <font key="font" metaFont="system"/>
+                                    <segments>
+                                        <segment label="debug"/>
+                                        <segment label="release" selected="YES" tag="1"/>
+                                    </segments>
+                                </segmentedCell>
+                            </segmentedControl>
                         </subviews>
                     </view>
                     <connections>
+                        <outlet property="debugRelease" destination="9ki-lO-zWJ" id="xpz-4B-OKa"/>
                         <outlet property="exportOptionsPath" destination="F7a-MC-yBy" id="u29-Ax-3qe"/>
                         <outlet property="ipaPath" destination="bib-ph-VNT" id="LT9-ot-uj8"/>
                         <outlet property="logTextField" destination="Ly1-4M-8vQ" id="4On-k0-Agz"/>

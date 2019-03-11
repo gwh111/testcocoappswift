@@ -5,14 +5,18 @@
 #            |-params.xml
 
 #工程名
-project_name='NAME_project'
+project_name='NAME_PROJECT'
 #工程地址
-project_path='PATH_project'
+project_path='PATH_PROJECT'
+#exportOptionsPlist地址
+plist_path='PATH_PLIST'
+#debug release
+debug_release='DEBUG_RELEASE'
 #31个图标启动图等存放位置 里面是app名字的文件夹
 resource_path='/Users/danche/Desktop/Rainbown_Main/Rainbow/package/图标'
 #ipa生成路径
 #在此新建一个空文件夹archive
-output_path='PATH_ipa'
+output_path='PATH_IPA'
 #xcarchive临时存放路径
 archive_path="$output_path/archive"
 
@@ -30,7 +34,7 @@ icons=(icon.png)
 packaging(){
 
 #***********配置项目
-MWConfiguration=Debug
+MWConfiguration=$debug_release
 #日期
 MWDate=`date +%Y%m%d_%H%M`
 
@@ -50,7 +54,7 @@ build \
 -derivedDataPath "$MWBuildTempDir"
 
 #生成ipa
-xcodebuild -exportArchive -exportOptionsPlist "PATH_plist" -archivePath "$archive_path/$project_name.xcarchive" -exportPath $output_path/$appId
+xcodebuild -exportArchive -exportOptionsPlist $plist_path -archivePath "$archive_path/$project_name.xcarchive" -exportPath $output_path/$appId
 
 #########这里不需要也可以去掉#########
 #移动重命名
@@ -59,6 +63,7 @@ mv /$output_path/$appId/$project_name.ipa /$output_path/$appId.ipa
 
 #删除
 rm -r $output_path/$appId/
+rm -r $output_path/archive/
 #########这里不需要也可以去掉#########
 
 
