@@ -10,6 +10,7 @@ import Cocoa
 
 class ViewController: NSViewController {
     
+    @IBOutlet var taskName: NSTextField!
     @IBOutlet var projectPath: NSTextField!
     @IBOutlet var projectName: NSTextField!
     @IBOutlet var debugRelease: NSSegmentedControl!
@@ -22,14 +23,272 @@ class ViewController: NSViewController {
     
     weak var observe : NSObjectProtocol?
     
+    var selectIndex:Int!=0
+    
+    //board
+    var board: NSView!
+
+    @IBOutlet weak var scrollView: NSScrollView!
+    @IBOutlet weak var tableView: NSTableView!{
+        didSet{
+            let nib = NSNib(nibNamed: "CustomCell", bundle: nil)
+            self.tableView.register(nib, forIdentifier: NSUserInterfaceItemIdentifier(rawValue: "CustomCell"))
+        }
+    }
+    var dataSource: [NSDictionary]?
+    
     var isLoadingRepo=false// 记录是否正在加载中..
     var outputPipe=Pipe()
+    
+    @IBAction func sharedDownload(_ sender: Any) {
+        let name=projectName.stringValue
+        download(name: name)
+    }
+    
+    func download(name: String) {
+        //http://bench-ios.oss-cn-shanghai.aliyuncs.com/project/KKTribe_EO.plist
+        let urlPath="http://bench-ios.oss-cn-shanghai.aliyuncs.com/project/"+name+"_EO.plist"
+        
+        let url: NSURL = NSURL(string: urlPath)!
+        
+        let request: NSURLRequest = NSURLRequest(url: url as URL)
+        
+        let session: URLSession = URLSession.shared
+        
+        let dataTask: URLSessionDataTask = session.dataTask(with: request as URLRequest) { (data, response, error) in
+            
+            if(error == nil){
+                
+                print(data?.count as Any)
+                let desS=response?.description
+                if (desS != nil) {
+                    if desS!.contains("Status Code: 200") {
+                        
+                        var eoPath=NSHomeDirectory().appending("/ProjectPackage/eo") as String
+                        eoPath=eoPath+"/"+name+"_EO.plist"
+                        try!data?.write(to: NSURL.fileURL(withPath: eoPath))
+                       
+                        DispatchQueue.main.async {
+                            self.exportOptionsPath.stringValue=eoPath
+                            self.showNotice(str: "exportOptions.plist文件下载成功~",suc: true)
+                        }
+                    }else {
+                        
+                        DispatchQueue.main.async {
+                            
+                            self.showNotice(str: "未找到名为"+name+"的plist文件",suc: false)
+                        }
+                    }
+                }else{
+                    DispatchQueue.main.async {
+                        
+                        self.showNotice(str: "网络问题",suc: false)
+                    }
+                }
+                
+            }
+        }
+        dataTask.resume()
+        
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        recoverAndSet();
+        print(NSHomeDirectory())
+        
+        let taskPath=NSHomeDirectory().appending("/ProjectPackage/task") as String
+        let eoPath=NSHomeDirectory().appending("/ProjectPackage/eo") as String
+        
+        let fileM=FileManager.default
+        let existed:Bool=fileM.fileExists(atPath: taskPath, isDirectory: nil)
+        if (existed==false) {
+            do {
+                try fileM.createDirectory(at: NSURL.fileURL(withPath: taskPath), withIntermediateDirectories: true, attributes: nil)
+            }catch{
+                
+            }
+        }
+        let existed_eo:Bool=fileM.fileExists(atPath: eoPath, isDirectory: nil)
+        if (existed_eo==false) {
+            do {
+                try fileM.createDirectory(at: NSURL.fileURL(withPath: eoPath), withIntermediateDirectories: true, attributes: nil)
+            }catch{
+                
+            }
+        }
+//        print(read() as Any)
+        
+        displayCurrentTable()
+        addBoard()
+        showBoard(self)
+//        recoverAndSet();
         // Do any additional setup after loading the view.
+    }
+    
+    func addBoard(){
+        
+        board=NSView.init()
+        board.frame=self.view.visibleRect
+        board.wantsLayer=true
+        self.view.addSubview(board)
+        
+        let colorBoard:NSView=NSView.init()
+        colorBoard.frame=board.visibleRect
+        colorBoard.wantsLayer=true
+        colorBoard.layer?.backgroundColor=NSColor.black.cgColor
+        colorBoard.alphaValue=0.5;
+        board.addSubview(colorBoard)
+        
+        let cancelBt:NSButton=NSButton.init()
+        cancelBt.frame=board.visibleRect
+        cancelBt.alphaValue=0;
+        cancelBt.action = #selector(cancelBtTapped(bt:))
+        board.addSubview(cancelBt)
+        
+        let leftBoard:NSView=NSView.init()
+        leftBoard.frame=NSRect(x:0,y:0,width:300,height:board.visibleRect.height)
+        leftBoard.wantsLayer=true
+        leftBoard.layer?.backgroundColor=NSColor.white.cgColor
+        board.addSubview(leftBoard)
+        
+        dataSource = read()
+        
+        scrollView.frame=NSRect(x:leftBoard.frame.origin.x,y:leftBoard.frame.origin.y+40,width:leftBoard.frame.size.width,height:leftBoard.frame.size.height-40)
+//        tableView.delegate=(self as NSTableViewDelegate)
+//        tableView.dataSource=(self as NSTableViewDataSource)
+        board.addSubview(scrollView)
+        
+        let addBt:NSButton=NSButton.init()
+        addBt.frame=NSRect(x:0,y:0,width:100,height:40)
+        let str="添加一个task" as String
+        let attrTitle = NSMutableAttributedString.init(string: str)
+        let titleRange = NSMakeRange(0, str.count)
+        attrTitle.addAttributes([NSAttributedString.Key.foregroundColor: NSColor.black], range: titleRange)
+        
+        addBt.attributedTitle=attrTitle
+        addBt.bezelStyle=NSButton.BezelStyle.regularSquare
+        addBt.action = #selector(addBtTapped(bt:))
+        board.addSubview(addBt)
+        
+        tableView.reloadData()
+    }
+    
+    @IBAction func saveTapped(_ sender: Any) {
+        saveCurrentTable()
+    }
+    
+    @objc func addBtTapped(bt: NSButton) {
+        
+        displayNewTable()
+        let tempBt=NSButton.init()
+        cancelBtTapped(bt: tempBt)
+        print("addBtTapped")
+        
+    }
+    
+    func read() ->[NSDictionary]? {
+        let homeDic=NSHomeDirectory().appending("/ProjectPackage/task") as String
+        print(homeDic)
+        
+        var taskList:[NSDictionary]=[]
+        
+        let fileM=FileManager.default
+        do {
+            let cintents1 = try fileM.contentsOfDirectory(atPath: homeDic)
+//            print("cintents:\(cintents1.count)\n")
+            
+            for name in cintents1 {
+                let fileName:String=homeDic.appending("/"+name)
+                let taskDic=readFileName(fileName: fileName)
+                if (taskDic) != nil{
+                    taskList.insert(taskDic!, at: 0)
+                }
+            }
+        } catch {
+            
+        }
+        return taskList
+    }
+    
+    func readFileName(fileName:String) ->NSMutableDictionary? {
+        let fileM=FileManager.default
+        let existed:Bool=fileM.fileExists(atPath: fileName, isDirectory: nil)
+        if (existed==true) {
+            if fileName.hasSuffix(".plist") {
+                let setUpDic:NSMutableDictionary=NSMutableDictionary.init(contentsOf: NSURL.fileURL(withPath: fileName))!
+                setUpDic.setObject(fileName, forKey: "fileName" as NSCopying)
+                return setUpDic
+            }
+        }
+        return nil
+    }
+    
+    func deleteAtIndex(index:Int){
+        let tempDic:NSDictionary=read()![index]
+        let fileName=tempDic.object(forKey: "fileName") as! String
+        let fileM=FileManager.default
+        let existed:Bool=fileM.fileExists(atPath: fileName, isDirectory: nil)
+        if (existed==true) {
+            try!fileM.removeItem(atPath: fileName)
+        }
+        print(fileName as Any)
+    }
+    
+    func readFromCurrentTable()->NSDictionary {
+        let mutDic:NSMutableDictionary=NSMutableDictionary.init()
+        let taskNameS:String=taskName.stringValue
+        mutDic.setObject(taskNameS, forKey: "taskName" as NSCopying)
+        let projectPathS:String=projectPath.stringValue
+        mutDic.setObject(projectPathS, forKey: "projectPath" as NSCopying)
+        let projectNameS:String=projectName.stringValue
+        mutDic.setObject(projectNameS, forKey: "projectName" as NSCopying)
+        let exportOptionsPathS:String=exportOptionsPath.stringValue
+        mutDic.setObject(exportOptionsPathS, forKey: "exportOptionsPath" as NSCopying)
+        let ipaPathS:String=ipaPath.stringValue
+        mutDic.setObject(ipaPathS, forKey: "ipaPath" as NSCopying)
+        
+        return mutDic
+    }
+    
+    func saveCurrentTable(){
+        let saveDic=readFromCurrentTable();
+        let taskS=saveDic.object(forKey: "taskName") as! String
+        if taskS.count<=0 {
+            showNotice(str: "没有写taskName", suc: false)
+            return;
+        }
+        showNotice(str: "创建【"+taskS+"】成功", suc: true)
+//        alt(altStr: "创建【"+taskS+"】成功")
+        
+        let homeDic=NSHomeDirectory().appending("/ProjectPackage/task") as String
+        let fileName:String=homeDic.appending("/"+taskS+".plist")
+        
+        saveDic.write(toFile: fileName, atomically: true)
+        
+        dataSource = read()
+        tableView.reloadData()
+    }
+    
+    func displayNewTable() {
+        taskName.stringValue=""
+        projectName.stringValue=""
+        projectPath.stringValue=""
+        exportOptionsPath.stringValue=""
+        ipaPath.stringValue=""
+    }
+    
+    func displayCurrentTable() {
+        let arr=read()!
+        if arr.count<=0 {
+            return
+        }
+        let currentDic=arr[selectIndex]
+        taskName.stringValue=currentDic.object(forKey: "taskName") as! String
+        projectName.stringValue=currentDic.object(forKey: "projectName") as! String
+        projectPath.stringValue=currentDic.object(forKey: "projectPath") as! String
+        exportOptionsPath.stringValue=currentDic.object(forKey: "exportOptionsPath") as! String
+        ipaPath.stringValue=currentDic.object(forKey: "ipaPath") as! String
     }
     
     func recoverAndSet() {
@@ -70,7 +329,14 @@ class ViewController: NSViewController {
         // Update the view, if already loaded.
         }
     }
-
+    @IBAction func courseTapped(_ sender: Any) {
+        let returnData = Bundle.main.path(forResource: "README", ofType: "md")
+        let data = NSData.init(contentsOfFile: returnData!)
+        let str =  NSString(data:data! as Data, encoding: String.Encoding.utf8.rawValue)! as String
+        
+        self.showInfoTextView.string=str
+    }
+    
     @IBAction func selectProjPath(_ sender: NSButton) {
         
         self.selectPath(sender);
@@ -131,22 +397,67 @@ class ViewController: NSViewController {
         }
     }
     
+    @IBAction func showBoard(_ sender: Any) {
+        
+        showNotice(str: "", suc: true)
+        taskName.abortEditing()
+        projectPath.abortEditing()
+        projectName.abortEditing()
+        exportOptionsPath.abortEditing()
+        ipaPath.abortEditing()
+        
+        board.frame=self.view.visibleRect
+        
+    }
+    
+    func alt(altStr:String) {
+        let alert:NSAlert=NSAlert.init()
+        alert.addButton(withTitle: "确定")
+        alert.messageText=altStr
+        alert.beginSheetModal(for: self.view.window!) { (result) in
+            print(result.rawValue)
+            if result.rawValue==1000 {
+                print("ok")
+            }
+        }
+    }
+    
+    @objc func cancelBtTapped(bt: NSButton) {
+        let selfR:NSRect=self.view.visibleRect
+        board.frame=NSRect(x:-selfR.size.width, y:selfR.origin.y, width:selfR.size.width,height:selfR.size.height)
+    }
+    
+    func showNotice(str:String, suc:Bool) {
+        self.logTextField.stringValue=str
+        if suc {
+            let color: NSColor = NSColor.init(red: 18.0/255.0, green: 189.0/255.0, blue: 0, alpha: 1.0);
+            self.logTextField.textColor=color
+        }else{
+            let color: NSColor = NSColor.init(red: 150.0/255.0, green: 0, blue: 0, alpha: 1.0);
+            self.logTextField.textColor=color
+        }
+    }
+    
     @IBAction func start(_ sender: Any) {
         
         guard projectPath.stringValue != "" else {
-            self.logTextField.stringValue="工程目录不能为空";
+//            self.logTextField.stringValue="工程目录不能为空";
+            showNotice(str: "工程目录不能为空", suc: false)
             return
         }
         guard projectName.stringValue != "" else {
-            self.logTextField.stringValue="工程名不能为空";
+//            self.logTextField.stringValue="工程名不能为空";
+            showNotice(str: "工程名不能为空", suc: false)
             return
         }
         guard exportOptionsPath.stringValue != "" else {
-            self.logTextField.stringValue="exportOptions不能为空 xcode生成ipa文件夹中包含";
+//            self.logTextField.stringValue="exportOptions不能为空 xcode生成ipa文件夹中包含";
+            showNotice(str: "exportOptions不能为空 xcode生成ipa文件夹中包含", suc: false)
             return
         }
         guard ipaPath.stringValue != "" else {
-            self.logTextField.stringValue="输出ipa目录不能为空";
+//            self.logTextField.stringValue="输出ipa目录不能为空";
+            showNotice(str: "输出ipa目录不能为空", suc: false)
             return
         }
         
@@ -171,7 +482,8 @@ class ViewController: NSViewController {
 //        self.showInfoTextView.string="abc";
         
         if isLoadingRepo {
-            self.logTextField.stringValue="正在执行上一个任务";
+//            self.logTextField.stringValue="正在执行上一个任务";
+            showNotice(str: "正在执行上一个任务", suc: false)
             return
         }// 如果正在执行,则返回
         isLoadingRepo = true   // 设置正在执行标记
@@ -288,6 +600,81 @@ extension ViewController{
             self.outputPipe.fileHandleForReading.waitForDataInBackgroundAndNotify()
         }
     }
+    
+}
+
+//MARK: - NSTableViewDataSource
+extension ViewController: NSTableViewDataSource{
+    func numberOfRows(in tableView: NSTableView) -> Int {
+        guard let dataSource = dataSource else {
+            return 0
+        }
+        return dataSource.count
+    }
+    
+    func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
+        let rowView = tableView.rowView(atRow: row, makeIfNecessary: false)
+        rowView?.isEmphasized = false
+        let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "CustomCell"), owner: self) as! CustomCell
+        let item = dataSource?[row]
+        cell.row=row
+        if row==selectIndex {
+            cell.selected=true;
+        }else{
+            cell.selected=false;
+        }
+        cell.setContent(item: item)
+        cell.callBackClosureFunction { (name, index) in
+            print("name:\(name), index:\(index)")
+            
+            //从沙盒删除
+            self.deleteAtIndex(index: index)
+            
+            self.dataSource?.remove(at: index)
+            self.tableView.reloadData()
+        }
+        return cell
+    }
+    
+    
+    func tableView(_ tableView: NSTableView, heightOfRow row: Int) -> CGFloat {
+        let cell = tableView.makeView(withIdentifier: NSUserInterfaceItemIdentifier(rawValue: "CustomCell"), owner: self) as! CustomCell
+        let item = dataSource?[row]
+        cell.setContent(item: item)
+        
+        if tableView.tableColumns.count>0 {
+            let tc = tableView.tableColumns[0]
+            let gap: CGFloat = 10 //width outside of label
+            cell.titleLabel.preferredMaxLayoutWidth = tc.width - gap
+            cell.detailLabel.preferredMaxLayoutWidth = tc.width - gap
+        }
+        
+        return cell.fittingSize.height
+    }
+    
+}
+
+//MARK: - NSTableViewDelegate
+extension ViewController: NSTableViewDelegate{
+    
+    
+    func tableView(_ tableView: NSTableView, shouldSelectRow row: Int) -> Bool {
+        print("click at row \(row)")
+        selectIndex=row
+        displayCurrentTable()
+        tableView.reloadData()
+        return true
+    }
+    
+    func tableViewSelectionDidChange(_ notification: Notification) {
+        let itemsSelected = tableView.selectedRowIndexes.count
+        
+        if itemsSelected > 0 {
+            let row = tableView.selectedRow
+            tableView.deselectRow(row)
+        }
+    }
+    
     
 }
 
