@@ -17,6 +17,7 @@
 		D84ED3DA22240B28005D9F8F /* package.sh in Resources */ = {isa = PBXBuildFile; fileRef = D84ED3D922240B28005D9F8F /* package.sh */; };
 		D8808E062236419100510581 /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = D8808E052236419100510581 /* README.md */; };
 		D8808E0822374A7E00510581 /* t2.sh in Resources */ = {isa = PBXBuildFile; fileRef = D8808E0722374A7E00510581 /* t2.sh */; };
+		D8D24D6A224DCC9C009F1DE0 /* ExportOptions.plist in Resources */ = {isa = PBXBuildFile; fileRef = D8D24D69224DCC9C009F1DE0 /* ExportOptions.plist */; };
 		D8E5FAAE223B43D400F254C8 /* DataSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E5FAAA223B43D400F254C8 /* DataSource.swift */; };
 		D8E5FAAF223B43D400F254C8 /* DataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8E5FAAB223B43D400F254C8 /* DataModel.swift */; };
 		D8E5FAB6223B5AE900F254C8 /* CustomCell.xib in Resources */ = {isa = PBXBuildFile; fileRef = D8E5FAB4223B5AE900F254C8 /* CustomCell.xib */; };
@@ -58,6 +59,7 @@
 		D84ED3D922240B28005D9F8F /* package.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = package.sh; sourceTree = "<group>"; };
 		D8808E052236419100510581 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = SOURCE_ROOT; };
 		D8808E0722374A7E00510581 /* t2.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = t2.sh; sourceTree = "<group>"; };
+		D8D24D69224DCC9C009F1DE0 /* ExportOptions.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = ExportOptions.plist; sourceTree = "<group>"; };
 		D8E5FAAA223B43D400F254C8 /* DataSource.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataSource.swift; sourceTree = "<group>"; };
 		D8E5FAAB223B43D400F254C8 /* DataModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataModel.swift; sourceTree = "<group>"; };
 		D8E5FAB4223B5AE900F254C8 /* CustomCell.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = CustomCell.xib; sourceTree = "<group>"; };
@@ -112,6 +114,7 @@
 		D84ED361221EADEA005D9F8F /* testcocoappswift */ = {
 			isa = PBXGroup;
 			children = (
+				D8D24D69224DCC9C009F1DE0 /* ExportOptions.plist */,
 				D8808E052236419100510581 /* README.md */,
 				D84ED3D922240B28005D9F8F /* package.sh */,
 				D84ED3D722239BEE005D9F8F /* t1.sh */,
@@ -260,6 +263,7 @@
 				D8808E0822374A7E00510581 /* t2.sh in Resources */,
 				D84ED3D822239BEE005D9F8F /* t1.sh in Resources */,
 				D8E5FAB6223B5AE900F254C8 /* CustomCell.xib in Resources */,
+				D8D24D6A224DCC9C009F1DE0 /* ExportOptions.plist in Resources */,
 				D84ED367221EADEB005D9F8F /* Assets.xcassets in Resources */,
 				D8808E062236419100510581 /* README.md in Resources */,
 				D84ED36A221EADEB005D9F8F /* Main.storyboard in Resources */,

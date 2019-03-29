@@ -1,5 +1,8 @@
 # PackageMachine
-iOS developer tool for package
+iOS developer tool for package  
+v1.2.0  
+ExportOptions路径不填会使用默认ExportOptions.plist文件  
+如果失败尝试添加Xcode打包出的ipa附带的ExportOptions.plist路径
 
 # 功能说明
 ========  

@@ -117,6 +117,14 @@ class ViewController: NSViewController {
         }
 //        print(read() as Any)
         
+        //save exp
+        let returnData = Bundle.main.path(forResource: "ExportOptions", ofType: "plist")
+        let data = NSData.init(contentsOfFile: returnData!)
+        var str =  NSString(data:data! as Data, encoding: String.Encoding.utf8.rawValue)! as String
+        let homeDic=NSHomeDirectory().appending("/ProjectPackage/eo") as String
+        let fileName:String=homeDic.appending("/"+"ExportOptions"+".plist")
+        data!.write(toFile: fileName, atomically: true)
+        
         displayCurrentTable()
         addBoard()
         showBoard(self)
@@ -448,11 +456,11 @@ class ViewController: NSViewController {
             showNotice(str: "工程名不能为空", suc: false)
             return
         }
-        guard exportOptionsPath.stringValue != "" else {
-//            self.logTextField.stringValue="exportOptions不能为空 xcode生成ipa文件夹中包含";
-            showNotice(str: "exportOptions不能为空 xcode生成ipa文件夹中包含", suc: false)
-            return
-        }
+//        guard exportOptionsPath.stringValue != "" else {
+////            self.logTextField.stringValue="exportOptions不能为空 xcode生成ipa文件夹中包含";
+//            showNotice(str: "exportOptions不能为空 xcode生成ipa文件夹中包含", suc: false)
+//            return
+//        }
         guard ipaPath.stringValue != "" else {
 //            self.logTextField.stringValue="输出ipa目录不能为空";
             showNotice(str: "输出ipa目录不能为空", suc: false)
@@ -488,7 +496,12 @@ class ViewController: NSViewController {
         
         let projectStr=self.projectPath.stringValue
         let nameStr=self.projectName.stringValue
-        let plistStr=self.exportOptionsPath.stringValue
+        var plistStr:String=self.exportOptionsPath.stringValue
+        if plistStr.count<=0 {
+            let homeDic=NSHomeDirectory().appending("/ProjectPackage/eo") as String
+            plistStr=homeDic.appending("/"+"ExportOptions"+".plist")
+        }
+        
         let ipaStr=self.ipaPath.stringValue
         
         let returnData = Bundle.main.path(forResource: "package", ofType: "sh")
