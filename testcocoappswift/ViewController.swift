@@ -95,8 +95,6 @@ class ViewController: NSViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        print(NSHomeDirectory())
-        
         let taskPath=NSHomeDirectory().appending("/ProjectPackage/task") as String
         let eoPath=NSHomeDirectory().appending("/ProjectPackage/eo") as String
         
