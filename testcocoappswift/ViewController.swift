@@ -494,7 +494,11 @@ class ViewController: NSViewController {
         }// 如果正在执行,则返回
         isLoadingRepo = true   // 设置正在执行标记
         
-        let projectStr=self.projectPath.stringValue
+        var projectStr=self.projectPath.stringValue
+        if projectStr.first=="/" {
+        }else{
+            projectStr="/"+projectStr
+        }
         let nameStr=self.projectName.stringValue
         var plistStr:String=self.exportOptionsPath.stringValue
         if plistStr.count<=0 {
@@ -502,7 +506,11 @@ class ViewController: NSViewController {
             plistStr=homeDic.appending("/"+"ExportOptions"+".plist")
         }
         
-        let ipaStr=self.ipaPath.stringValue
+        var ipaStr=self.ipaPath.stringValue
+        if ipaStr.first=="/" {
+        }else{
+            ipaStr="/"+ipaStr
+        }
         
         let returnData = Bundle.main.path(forResource: "package", ofType: "sh")
         let data = NSData.init(contentsOfFile: returnData!)
