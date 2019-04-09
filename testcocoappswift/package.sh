@@ -59,7 +59,8 @@ xcodebuild -exportArchive -exportOptionsPlist $plist_path -archivePath "$archive
 #########这里不需要也可以去掉#########
 #移动重命名
 #mv /$output_path/$appId/LotteryShop.ipa /$output_path/$appId.ipa
-mv /$output_path/$appId/$project_name.ipa /$output_path/$appId.ipa
+time3=$(date "+%Y-%m-%d %H-%M-%S")
+mv /$output_path/$appId/$project_name.ipa /$output_path/"$appId $time3.ipa"
 
 #删除
 rm -r $output_path/$appId/
