@@ -15,7 +15,7 @@ Share: will download shared ExportOptions.plist from server. (current not must)
 
 # notice
 ========
-![img](https://github.com/gwh111/testcocoappswift/blob/master/screenshot.png)
+<img src="https://github.com/gwh111/testcocoappswift/blob/master/screenshot.png" width="320">
 1. error: Signing for "xxx" requires a development team. Select a development team in the project editor. (in target 'xxx')  
 solution: select the right team in project.  
 

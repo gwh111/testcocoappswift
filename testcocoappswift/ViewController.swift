@@ -525,9 +525,9 @@ class ViewController: NSViewController {
         str = str.replacingOccurrences(of: "PATH_PLIST", with: plistStr)
         str = str.replacingOccurrences(of: "PATH_IPA", with: ipaStr)
         str = str.replacingOccurrences(of: "file://", with: "")
-        print("返回的数据：\(str)");
+        print("result：\(str)");
         
-        self.logTextField.stringValue="执行中。。。";
+        self.logTextField.stringValue="start running task...";
         
         DispatchQueue.global(qos: .default).async {
             
@@ -550,7 +550,7 @@ class ViewController: NSViewController {
                 
                 //5. 在主线程处理UI
                 DispatchQueue.main.async(execute: {
-                    self.logTextField.stringValue="执行完毕";
+                    self.logTextField.stringValue="finish running task...";
                 })
             }
             
