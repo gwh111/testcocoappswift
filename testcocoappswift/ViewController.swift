@@ -167,7 +167,7 @@ class ViewController: NSViewController {
         
         let addBt:NSButton=NSButton.init()
         addBt.frame=NSRect(x:0,y:0,width:100,height:40)
-        let str="添加一个task" as String
+        let str="add task" as String
         let attrTitle = NSMutableAttributedString.init(string: str)
         let titleRange = NSMakeRange(0, str.count)
         attrTitle.addAttributes([NSAttributedString.Key.foregroundColor: NSColor.black], range: titleRange)
